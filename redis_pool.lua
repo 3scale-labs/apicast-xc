@@ -1,6 +1,4 @@
 local redis = require 'resty.redis'
-local exceptions = require 'exceptions'
-local errors = require 'errors'
 
 -- Redis connection parameters
 local _M = {
@@ -13,30 +11,18 @@ local _M = {
 
 -- @return table with a redis connection from the pool
 function _M.acquire()
-  if ngx.ctx.redis == nil then
-    ngx.ctx.redis = redis
-  end
-  local conn = ngx.ctx.redis:new()
+  local conn = redis:new()
 
   conn:set_timeout(_M.timeout)
 
   local ok, err = conn:connect(_M.host, _M.port)
 
-  if not ok then
-    ngx.log(ngx.ERR, "failed to connect to redis: ", err)
-    local pthru = exceptions.passthrough_on(exceptions.redis_pool_redis_error)
-    if not pthru.allowed then
-      errors.respond_with_error(pthru.error_type)
-    end
-  end
-
-  return conn
+  return conn, ok, err
 end
 
 -- return ownership of this connection to the pool
 function _M.release(conn)
   conn:set_keepalive(_M.keepalive, _M.poolsize)
-  ngx.ctx.redis = nil
 end
 
 return _M
