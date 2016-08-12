@@ -22,9 +22,47 @@ describe('xc', function()
   end)
 
   describe('authrep', function()
-    it('returns auth ok', function()
-      local res_auth = xc.authrep('a_service_id', 'an_app_id', { a_method = 1 }).auth
-      assert.are.equals(xc.auth.ok, res_auth)
+    local service_id = 'a_service_id'
+    local app_id = 'an_app_id'
+    local method = 'a_method'
+    local usage = { a_method = 1 } -- just 1 metric for now
+
+    describe('when the call is authorized', function()
+      setup(function()
+        -- TODO: avoid constructing the hash key here
+        redis_client:hset(service_id..':'..app_id, method, '1')
+      end)
+
+      it('returns ok', function()
+        local res_auth = xc.authrep(service_id, app_id, usage).auth
+        assert.are.equals(xc.auth.ok, res_auth)
+      end)
+
+      teardown(function()
+        redis_client:del(service_id..':'..app_id)
+      end)
+    end)
+
+    describe('when the call is not authorized', function()
+      setup(function()
+        redis_client:hset(service_id..':'..app_id, method, '0')
+      end)
+
+      it('returns denied', function()
+        local res_auth = xc.authrep(service_id, app_id, usage).auth
+        assert.are.equals(xc.auth.denied, res_auth)
+      end)
+
+      teardown(function()
+        redis_client:del(service_id..':'..app_id)
+      end)
+    end)
+
+    describe('when we cannot determine whether the call is authorized', function()
+      it('returns unknown', function()
+        local res_auth = xc.authrep(service_id, app_id, usage).auth
+        assert.are.equals(xc.auth.unknown, res_auth)
+      end)
     end)
   end)
 end)
