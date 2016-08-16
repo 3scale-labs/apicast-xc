@@ -23,9 +23,13 @@ local function do_authrep(service_id, app_id, usage_method, usage_val)
 
   if cached_auth then
     output.auth = _M.auth.ok
+    cache.report(service_id, app_id, usage_method, usage_val)
   elseif not cached_auth and cached_auth ~= nil then
     output.auth = _M.auth.denied
   end
+
+  -- note: when auth = unknown, we do not report the usage. We might change
+  -- this in the future or make it configurable.
 
 ::hell::
   return output
