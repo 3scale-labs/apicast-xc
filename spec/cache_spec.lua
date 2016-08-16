@@ -13,6 +13,13 @@ describe('cache', function()
 
     redis_client = redis.connect(redis_cfg.host, redis_cfg.port)
 
+    -- redis-lua and resty.redis use a different syntax for pipelines. We do
+    -- not need pipelines for testing, but we need to make sure that our client
+    -- defines the 2 methods used by resty.redis: init_pipeline() and
+    -- commit_pipeline().
+    redis_client.init_pipeline = function() end
+    redis_client.commit_pipeline = function() return true end
+
     package.loaded.redis_pool = {
       acquire = function() return redis_client, true end,
       release = function() return true end

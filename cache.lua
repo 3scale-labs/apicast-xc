@@ -51,13 +51,18 @@ function _M.report(service_id, app_id, usage_method, usage_val)
   end
 
   local report_hash_key = get_report_hash_key(service_id, app_id)
-  local _, err_hincrby = redis:hincrby(report_hash_key, usage_method, usage_val)
 
-  local _, err_sadd = redis:sadd(SET_REPORT_KEYS, report_hash_key)
+  -- Run the 2 Redis commands in a pipeline to save network round-trip time.
+  -- If executing a command in between is problematic, we should use a
+  -- transaction with multi instead, but that's not clear yet.
+  redis:init_pipeline(2)
+  redis:hincrby(report_hash_key, usage_method, usage_val)
+  redis:sadd(SET_REPORT_KEYS, report_hash_key)
+  local result, _ = redis:commit_pipeline()
 
   redis_pool.release(redis)
 
-  return not (err_hincrby or err_sadd)
+  return result ~= nil
 end
 
 return _M
