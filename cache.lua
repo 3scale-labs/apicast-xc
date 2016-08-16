@@ -20,11 +20,11 @@ function _M.authorize(service_id, app_id, usage_method)
   local auth_hash_key = get_auth_hash_key(service_id, app_id)
   local cached_auth, err = redis:hget(auth_hash_key, usage_method)
 
+  redis_pool.release(redis)
+
   if err then
     return nil, false, _M.error.db_connection_failed
   end
-
-  redis_pool.release(redis)
 
   local auth
   if cached_auth == '0' then

@@ -1,4 +1,4 @@
-local redis_pool = require 'redis_pool'
+local cache = require 'cache'
 
 local _M = {
   auth = {
@@ -11,44 +11,21 @@ local _M = {
   }
 }
 
-local function get_hash_key(service_id, app_id)
-  return service_id..':'..app_id
-end
-
-local function is_authorized(service_id, app_id, usage_method, redis)
-  local auth_hash_key = get_hash_key(service_id, app_id)
-  local auth, err = redis:hget(auth_hash_key, usage_method)
-
-  -- TODO: case when err is true
-
-  local result = _M.auth.unknown
-
-  if auth == '0' then
-    result = _M.auth.denied
-  elseif auth == '1' then
-    result = _M.auth.ok
-  end
-
-  return result
-end
-
 local function do_authrep(service_id, app_id, usage_method, usage_val)
+  local cached_auth, ok = cache.authorize(service_id, app_id, usage_method)
+
   local output = { auth = _M.auth.unknown }
-  local redis, ok, err = redis_pool.acquire()
 
   if not ok then
-    -- handle exhausted pool or connection error
-    -- and exit early with proper output
     output.error = _M.error.db_connection_failed
-    output.error_desc = 'db: '..err
     goto hell
   end
 
-  output.auth = is_authorized(service_id, app_id, usage_method, redis)
-
-  -- finished dealing with the database, release the connection
-  -- TODO: handle possible errors returned by this
-  redis_pool.release(redis)
+  if cached_auth then
+    output.auth = _M.auth.ok
+  elseif not cached_auth and cached_auth ~= nil then
+    output.auth = _M.auth.denied
+  end
 
 ::hell::
   return output
