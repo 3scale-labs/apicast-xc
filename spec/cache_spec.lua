@@ -67,4 +67,51 @@ describe('cache', function()
       end)
     end)
   end)
+
+  describe('report', function()
+    local service_id = 'a_service_id'
+    local app_id = 'an_app_id'
+    local method = 'a_method'
+
+    -- TODO: Try not to hardcode these 2 here
+    local report_key = 'report:'..service_id..':'..app_id
+    local report_keys_set = 'report_keys'
+
+    after_each(function()
+      redis_client:del(report_key)
+      redis_client:del(report_keys_set)
+    end)
+
+    describe('when the usage is cached', function()
+      local current_usage = 5
+      local usage_val = 10
+
+      setup(function()
+        redis_client:hset(report_key, method, current_usage)
+      end)
+
+      it('increases the cached value by the one reported', function()
+        cache.report(service_id, app_id, method, usage_val)
+
+        local cached_val = redis_client:hget(report_key, method)
+        assert.are_equals(current_usage + usage_val, tonumber(cached_val))
+      end)
+    end)
+
+    describe('when the usage is not cached', function()
+      local usage_val = 10
+
+      it('caches the reported value', function()
+        cache.report(service_id, app_id, method, usage_val)
+
+        local cached_val = redis_client:hget(report_key, method)
+        assert.are_equals(usage_val, tonumber(cached_val))
+      end)
+
+      it('adds the report hash key to the set of modified keys', function()
+        cache.report(service_id, app_id, method, usage_val)
+        assert.are_equals(report_key, redis_client:smembers(report_keys_set)[1])
+      end)
+    end)
+  end)
 end)
