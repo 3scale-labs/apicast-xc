@@ -22,8 +22,9 @@ describe('xc', function()
       end)
 
       it('returns ok and no errors', function()
-        local res_auth = xc.authrep(service_id, app_id, usage).auth
-        assert.are.equals(xc.auth.ok, res_auth)
+        local res = xc.authrep(service_id, app_id, usage)
+        assert.are.same(xc.auth.ok, res.auth)
+        assert.is_nil(res.error)
       end)
 
       it('caches the reported usage', function()
@@ -41,8 +42,9 @@ describe('xc', function()
       end)
 
       it('returns denied', function()
-        local res_auth = xc.authrep(service_id, app_id, usage).auth
-        assert.are.equals(xc.auth.denied, res_auth)
+        local res = xc.authrep(service_id, app_id, usage)
+        assert.are.same(xc.auth.denied, res.auth)
+        assert.is_nil(res.error)
       end)
 
       it('does not cache the reported usage', function()
@@ -59,8 +61,9 @@ describe('xc', function()
       end)
 
       it('returns unknown', function()
-        local res_auth = xc.authrep(service_id, app_id, usage).auth
-        assert.are.equals(xc.auth.unknown, res_auth)
+        local res = xc.authrep(service_id, app_id, usage)
+        assert.are.same(xc.auth.unknown, res.auth)
+        assert.is_nil(res.error)
       end)
 
       it('does not cache the reported usage', function()
