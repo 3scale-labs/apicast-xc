@@ -3,6 +3,9 @@ describe('cache', function()
   local redis_client
   local redis_pool
 
+  -- Use a spy to ensure that Redis connections are not leaked
+  local spy_redis_release
+
   setup(function()
     -- Mock the redis pool. For testing, we'll use redis-lua instead of resty.redis
     local redis = require 'redis'
@@ -28,6 +31,13 @@ describe('cache', function()
 
     redis_pool = package.loaded.redis_pool
     cache = require 'cache'
+
+    -- assumes redis_pool.release is not changed in any of these tests
+    spy_redis_release = spy.on(redis_pool, 'release')
+  end)
+
+  before_each(function()
+    spy_redis_release:clear() -- reset call history
   end)
 
   describe('authorize', function()
@@ -47,6 +57,11 @@ describe('cache', function()
         assert.is_true(cached_auth)
       end)
 
+      it('releases the Redis connection', function()
+        cache.authorize(service_id, app_id, method)
+        assert.equals(1, #spy_redis_release.calls)
+      end)
+
       teardown(function()
         redis_client:del('auth:'..service_id..':'..app_id)
       end)
@@ -63,6 +78,11 @@ describe('cache', function()
         assert.is_false(cached_auth)
       end)
 
+      it('releases the Redis connection', function()
+        cache.authorize(service_id, app_id, method)
+        assert.equals(1, #spy_redis_release.calls)
+      end)
+
       teardown(function()
         redis_client:del('auth:'..service_id..':'..app_id)
       end)
@@ -73,6 +93,11 @@ describe('cache', function()
         local cached_auth, ok = cache.authorize(service_id, app_id, method)
         assert.is_true(ok)
         assert.is_nil(cached_auth)
+      end)
+
+      it('releases the Redis connection', function()
+        cache.authorize(service_id, app_id, method)
+        assert.equals(1, #spy_redis_release.calls)
       end)
     end)
 
@@ -101,6 +126,11 @@ describe('cache', function()
       it('returns an error', function()
         local _, ok = cache.authorize(service_id, app_id, method)
         assert.is_false(ok)
+      end)
+
+      it('releases the Redis connection', function()
+        cache.authorize(service_id, app_id, method)
+        assert.equals(1, #spy_redis_release.calls)
       end)
 
       teardown(function()
@@ -141,6 +171,11 @@ describe('cache', function()
       it('returns true', function()
         assert.is_true(cache.report(service_id, app_id, method, usage_val))
       end)
+
+      it('releases the Redis connection', function()
+        cache.report(service_id, app_id, method, usage_val)
+        assert.equals(1, #spy_redis_release.calls)
+      end)
     end)
 
     describe('when the usage is not cached and there are no DB connection errors', function()
@@ -158,6 +193,11 @@ describe('cache', function()
 
       it('returns true', function()
         assert.is_true(cache.report(service_id, app_id, method, usage_val))
+      end)
+
+      it('releases the Redis connection', function()
+        cache.report(service_id, app_id, method, usage_val)
+        assert.equals(1, #spy_redis_release.calls)
       end)
     end)
 
@@ -189,6 +229,11 @@ describe('cache', function()
 
       it('returns false', function()
         assert.is_false(cache.report(service_id, app_id, method, usage_val))
+      end)
+
+      it('releases the Redis connection', function()
+        cache.report(service_id, app_id, method, usage_val)
+        assert.equals(1, #spy_redis_release.calls)
       end)
 
       teardown(function()
