@@ -4,26 +4,31 @@ local _M = {
   auth = {
     ok = 0,
     denied = 1,
-    unknown = 2,
+    unknown = 2
   },
   error = {
-    db_connection_failed = 0,
+    cache_auth_failed = 0,
+    cache_report_failed = 1
   }
 }
 
 local function do_authrep(service_id, app_id, usage_method, usage_val)
-  local cached_auth, ok = cache.authorize(service_id, app_id, usage_method)
+  local cached_auth, auth_ok = cache.authorize(service_id, app_id, usage_method)
 
   local output = { auth = _M.auth.unknown }
 
-  if not ok then
-    output.error = _M.error.db_connection_failed
+  if not auth_ok then
+    output.error = _M.error.cache_auth_failed
     goto hell
   end
 
   if cached_auth then
     output.auth = _M.auth.ok
-    cache.report(service_id, app_id, usage_method, usage_val)
+    local report_ok = cache.report(service_id, app_id, usage_method, usage_val)
+
+    if not report_ok then
+      output.error = _M.error.cache_report_failed
+    end
   elseif not cached_auth and cached_auth ~= nil then
     output.auth = _M.auth.denied
   end
