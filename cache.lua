@@ -1,10 +1,6 @@
 local redis_pool = require 'redis_pool'
 
-local _M = {
-  error = {
-    db_connection_failed = 'DB connection failed'
-  }
-}
+local _M = { }
 
 local function get_auth_hash_key(service_id, app_id)
   return 'auth:'..service_id..':'..app_id
@@ -20,7 +16,7 @@ function _M.authorize(service_id, app_id, usage_method)
   local redis, ok = redis_pool.acquire()
 
   if not ok then
-    return nil, false, _M.error.db_connection_failed
+    return nil, false
   end
 
   local auth_hash_key = get_auth_hash_key(service_id, app_id)
@@ -29,7 +25,7 @@ function _M.authorize(service_id, app_id, usage_method)
   redis_pool.release(redis)
 
   if err then
-    return nil, false, _M.error.db_connection_failed
+    return nil, false
   end
 
   local auth
