@@ -12,13 +12,13 @@ describe('xc', function()
       -- Use a mocked cache.
       package.loaded.cache = { authorize = nil, report = nil }
       cache = package.loaded.cache
+      xc = require 'xc'
     end)
 
     describe('when the call is authorized', function()
       setup(function()
         cache.authorize = function() return true, true end
         cache.report = spy.new(function() return true end)
-        xc = require 'xc'
       end)
 
       it('returns ok and no errors', function()
@@ -38,7 +38,6 @@ describe('xc', function()
       setup(function()
         cache.authorize = function() return false, true end
         cache.report = spy.new(function() return true end)
-        xc = require 'xc'
       end)
 
       it('returns denied', function()
@@ -57,7 +56,6 @@ describe('xc', function()
       setup(function()
         cache.authorize = function() return nil, true end
         cache.report = spy.new(function() return true end)
-        xc = require 'xc'
       end)
 
       it('returns unknown', function()
@@ -75,7 +73,6 @@ describe('xc', function()
     describe('when checking the authorization in the cache fails', function()
       setup(function()
         cache.authorize = function() return nil, false end
-        xc = require 'xc'
       end)
 
       it('returns auth unknown and a cache auth error', function()
@@ -89,7 +86,6 @@ describe('xc', function()
       setup(function()
         cache.authorize = function() return true, true end
         cache.report = function() return false end
-        xc = require 'xc'
       end)
 
       it('returns auth OK and a cache report error', function()
