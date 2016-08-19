@@ -17,12 +17,11 @@ describe('cache', function()
 
     local client = redis.connect(redis_cfg.host, redis_cfg.port)
 
-    -- redis-lua and resty.redis use a different syntax for pipelines. We do
-    -- not need pipelines for testing, but we need to make sure that our client
-    -- defines the 2 methods used by resty.redis: init_pipeline() and
-    -- commit_pipeline().
-    client.init_pipeline = function() end
-    client.commit_pipeline = function() return true end
+    -- redis-lua and resty.redis use a different syntax for multi. We do not
+    -- need multi for testing, but we need to make sure that our client defines
+    -- the 2 methods used by resty.redis: multi() and exec()
+    client.multi = function() return true end
+    client.exec = function() return true end
 
     return client
   end
@@ -236,15 +235,25 @@ describe('cache', function()
         -- we need to create a Redis client that accepts all the commands used
         -- in the code and that returns an error in some step
         redis_pool.acquire = function()
-          return { init_pipeline = function() end,
-                   hincrby = function() end,
-                   sadd = function() end,
-                   commit_pipeline = function() return nil, true end }, true
+          return { multi = function() return true end,
+                   hincrby = function() return true end,
+                   sadd = function() return true end,
+                   exec = function() return false end }, true
         end
       end)
 
       it('returns false', function()
         assert.is_false(cache.report(service_id, app_id, method, usage_val))
+      end)
+
+      it('does not cache the usage', function()
+        cache.report(service_id, app_id, method, usage_val)
+        assert.is_nil(redis_client:hget(report_key, method))
+      end)
+
+      it('does not update the set of updated keys', function()
+        cache.report(service_id, app_id, method, usage_val)
+        assert.are.same({}, redis_client:smembers(report_keys_set))
       end)
 
       it('releases the Redis connection', function()
