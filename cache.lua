@@ -20,11 +20,13 @@ function _M.authorize(service_id, app_id, usage_method)
   end
 
   local auth_hash_key = get_auth_hash_key(service_id, app_id)
-  local cached_auth, err = redis:hget(auth_hash_key, usage_method)
+  local cached_auth, _ = redis:hget(auth_hash_key, usage_method)
 
   redis_pool.release(redis)
 
-  if err then
+  -- note: cached_auth == nil indicates that an error happened, whereas
+  -- cached_auth == ngx.null indicates that the key does not exist.
+  if cached_auth == nil then
     return nil, false
   end
 

@@ -6,8 +6,8 @@ describe('cache', function()
   -- Use a spy to ensure that Redis connections are not leaked
   local spy_redis_release
 
-  setup(function()
-    -- Mock the redis pool. For testing, we'll use redis-lua instead of resty.redis
+  -- The redis client used in testing. It uses lua-redis instead of resty.redis
+  local function test_redis_client()
     local redis = require 'redis'
 
     local redis_cfg = {
@@ -15,15 +15,22 @@ describe('cache', function()
       port = 6379
     }
 
-    redis_client = redis.connect(redis_cfg.host, redis_cfg.port)
+    local client = redis.connect(redis_cfg.host, redis_cfg.port)
 
     -- redis-lua and resty.redis use a different syntax for pipelines. We do
     -- not need pipelines for testing, but we need to make sure that our client
     -- defines the 2 methods used by resty.redis: init_pipeline() and
     -- commit_pipeline().
-    redis_client.init_pipeline = function() end
-    redis_client.commit_pipeline = function() return true end
+    client.init_pipeline = function() end
+    client.commit_pipeline = function() return true end
 
+    return client
+  end
+
+  setup(function()
+    redis_client = test_redis_client()
+
+    -- Mock the redis pool to use the test redis client instead of resty.redis
     package.loaded.redis_pool = {
       acquire = function() return redis_client, true end,
       release = function() return true end
@@ -89,6 +96,11 @@ describe('cache', function()
     end)
 
     describe('when the authorization is not cached', function()
+      setup(function()
+        redis_client.ngx = { null = 'ngx.null' }
+        redis_client.hget = function() return redis_client.ngx.null end
+      end)
+
       it('returns nil', function()
         local cached_auth, ok = cache.authorize(service_id, app_id, method)
         assert.is_true(ok)
@@ -98,6 +110,10 @@ describe('cache', function()
       it('releases the Redis connection', function()
         cache.authorize(service_id, app_id, method)
         assert.equals(1, #spy_redis_release.calls)
+      end)
+
+      teardown(function()
+        redis_client = test_redis_client()
       end)
     end)
 
