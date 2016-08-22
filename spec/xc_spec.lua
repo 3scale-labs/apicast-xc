@@ -10,9 +10,9 @@ describe('xc', function()
 
     setup(function()
       -- Use a mocked cache.
-      package.loaded.cache = { authorize = nil, report = nil }
-      cache = package.loaded.cache
-      xc = require 'xc'
+      package.loaded['xc/cache'] = { authorize = nil, report = nil }
+      cache = package.loaded['xc/cache']
+      xc = require 'xc/xc'
     end)
 
     describe('when the call is authorized', function()

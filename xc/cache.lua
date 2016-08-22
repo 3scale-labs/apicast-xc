@@ -1,4 +1,4 @@
-local redis_pool = require 'redis_pool'
+local redis_pool = require 'lib/redis_pool'
 
 local _M = { }
 

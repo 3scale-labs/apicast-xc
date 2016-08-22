@@ -1,4 +1,4 @@
-local cache = require 'cache'
+local cache = require 'xc/cache'
 
 local _M = {
   auth = {
