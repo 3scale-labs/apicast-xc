@@ -36,7 +36,45 @@ describe('xc', function()
 
     describe('when the call is not authorized', function()
       setup(function()
-        cache.authorize = function() return false, true end
+        cache.report = spy.new(function() return true end)
+      end)
+
+      describe('and a reason is not specified', function()
+        setup(function()
+          cache.authorize = function() return true, false end
+        end)
+
+        it('returns denied', function()
+          local res = xc.authrep(service_id, app_id, usage)
+          assert.are.same(xc.auth.denied, res.auth)
+          assert.is_nil(res.error)
+        end)
+      end)
+
+      describe('and a reason is specified', function()
+        local reason = 'a_deny_reason'
+
+        setup(function()
+          cache.authorize = function() return true, false, reason end
+        end)
+
+        it('returns denied and a the reason', function()
+          local res = xc.authrep(service_id, app_id, usage)
+          assert.are.same(xc.auth.denied, res.auth)
+          assert.are.same(reason, res.reason)
+          assert.is_nil(res.error)
+        end)
+      end)
+
+      it('does not cache the reported usage', function()
+        xc.authrep(service_id, app_id, usage)
+        assert.spy(cache.report).was.not_called()
+      end)
+    end)
+
+    describe('when the call is not authorized', function()
+      setup(function()
+        cache.authorize = function() return true, false end
         cache.report = spy.new(function() return true end)
       end)
 
@@ -54,7 +92,7 @@ describe('xc', function()
 
     describe('when we cannot determine whether the call is authorized', function()
       setup(function()
-        cache.authorize = function() return nil, true end
+        cache.authorize = function() return true, nil end
         cache.report = spy.new(function() return true end)
       end)
 
@@ -72,7 +110,7 @@ describe('xc', function()
 
     describe('when checking the authorization in the cache fails', function()
       setup(function()
-        cache.authorize = function() return nil, false end
+        cache.authorize = function() return false, nil end
       end)
 
       it('returns auth unknown and a cache auth error', function()

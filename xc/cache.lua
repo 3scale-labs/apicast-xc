@@ -39,11 +39,14 @@ local function report_and_update_reported_set(service_id, app_id, usage_method, 
   return res_exec
 end
 
+-- @return true if the authorization could be retrieved, false otherwise
+-- @return true if authorized, false if denied, nil if unknown
+-- @return reason why the authorization is denied (optional)
 function _M.authorize(service_id, app_id, usage_method)
   local redis, ok = redis_pool.acquire()
 
   if not ok then
-    return nil, false
+    return false, nil
   end
 
   local auth_hash_key = get_auth_hash_key(service_id, app_id)
@@ -54,17 +57,28 @@ function _M.authorize(service_id, app_id, usage_method)
   -- note: cached_auth == nil indicates that an error happened, whereas
   -- cached_auth == ngx.null indicates that the key does not exist.
   if cached_auth == nil then
-    return nil, false
+    return false, nil
   end
 
-  local auth
-  if cached_auth == '0' then
+  -- At this point, if cached_auth == ngx.null, auth is unknown. Otherwise,
+  -- it's a string: '1' for authorized and '0' for denied. If a reason is
+  -- specified when denied, it follows this format: '0:reason'.
+
+  if type(cached_auth) ~= 'string' then
+    return true, nil
+  end
+
+  local auth, reason
+  if cached_auth:sub(1, 1) == '0' then
     auth = false
-  elseif cached_auth == '1' then
+    if cached_auth:len() >= 3 then
+      reason = cached_auth:sub(3, -1)
+    end
+  elseif cached_auth:sub(1, 1) == '1' then
     auth = true
   end
 
-  return auth, true
+  return true, auth, reason
 end
 
 -- Returns true if the report succeeds, false otherwise.

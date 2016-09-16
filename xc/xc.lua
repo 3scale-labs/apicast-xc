@@ -13,7 +13,7 @@ local _M = {
 }
 
 local function do_authrep(service_id, app_id, usage_method, usage_val)
-  local cached_auth, auth_ok = cache.authorize(service_id, app_id, usage_method)
+  local auth_ok, cached_auth, reason = cache.authorize(service_id, app_id, usage_method)
 
   local output = { auth = _M.auth.unknown }
 
@@ -31,6 +31,7 @@ local function do_authrep(service_id, app_id, usage_method, usage_val)
     end
   elseif not cached_auth and cached_auth ~= nil then
     output.auth = _M.auth.denied
+    output.reason = reason
   end
 
   -- note: when auth = unknown, we do not report the usage. We might change
