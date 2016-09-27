@@ -68,6 +68,8 @@ function _M.authorize(service_id, app_id, usage_method)
     return true, nil
   end
 
+  -- auth is nil. We only need to set it if the authorization is cached and
+  -- it has a valid value.
   local auth, reason
   if cached_auth:sub(1, 1) == '0' then
     auth = false

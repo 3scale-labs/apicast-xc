@@ -134,6 +134,27 @@ describe('cache', function()
       end)
     end)
 
+    describe('when the authorization is cached and it has an invalid value', function()
+      setup(function()
+        redis_client:hset('auth:'..service_id..':'..app_id, method, 'corrupted_value')
+      end)
+
+      it('returns nil', function()
+        local ok, cached_auth = cache.authorize(service_id, app_id, method)
+        assert.is_true(ok)
+        assert.is_nil(cached_auth)
+      end)
+
+      it('releases the Redis connection', function()
+        cache.authorize(service_id, app_id, method)
+        assert.equals(1, #spy_redis_release.calls)
+      end)
+
+      teardown(function()
+        redis_client:del('auth:'..service_id..':'..app_id)
+      end)
+    end)
+
     describe('when there is an error acquiring a Redis connection', function()
       setup(function()
         redis_pool.acquire = function() return nil, false end
