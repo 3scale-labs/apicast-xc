@@ -1,4 +1,5 @@
 local cache = require 'xc/cache'
+local priority_auths = require 'xc/priority_auths'
 
 local _M = {
   auth = {
@@ -12,8 +13,9 @@ local _M = {
   }
 }
 
-local function do_authrep(service_id, app_id, usage_method, usage_val)
-  local auth_ok, cached_auth, reason = cache.authorize(service_id, app_id, usage_method)
+local function do_authrep(auth_storage, service_id, app_id, usage_method, usage_val)
+  local auth_ok, cached_auth, reason = auth_storage.authorize(
+    service_id, app_id, usage_method)
 
   local output = { auth = _M.auth.unknown }
 
@@ -55,7 +57,17 @@ end
 function _M.authrep(service_id, app_id, usage)
   local usage_method, usage_val = next(usage)
 
-  return do_authrep(service_id, app_id, usage_method, usage_val)
+  -- First, try to retrieve the authorization from the cache. If it's there,
+  -- return it, and do the report if it's authorized. If the auth is not in the
+  -- cache, use the priority auth renewer based on Redis pubsub to get it.
+
+  local cache_res = do_authrep(cache, service_id, app_id, usage_method, usage_val)
+
+  if cache_res.auth == _M.auth.unknown then
+    cache_res = do_authrep(priority_auths, service_id, app_id, usage_method, usage_val)
+  end
+
+  return cache_res
 end
 
 return _M
