@@ -36,9 +36,6 @@ local function do_authrep(auth_storage, service_id, app_id, usage_method, usage_
     output.reason = reason
   end
 
-  -- note: when auth = unknown, we do not report the usage. We might change
-  -- this in the future or make it configurable.
-
 ::hell::
   return output
 end
