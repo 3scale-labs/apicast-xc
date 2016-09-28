@@ -1,4 +1,5 @@
 local redis_pool = require 'lib/redis_pool'
+local authorizations_formatter = require 'xc/authorizations_formatter'
 
 local _M = { }
 
@@ -54,33 +55,8 @@ function _M.authorize(service_id, app_id, usage_method)
 
   redis_pool.release(redis)
 
-  -- note: cached_auth == nil indicates that an error happened, whereas
-  -- cached_auth == ngx.null indicates that the key does not exist.
-  if cached_auth == nil then
-    return false, nil
-  end
-
-  -- At this point, if cached_auth == ngx.null, auth is unknown. Otherwise,
-  -- it's a string: '1' for authorized and '0' for denied. If a reason is
-  -- specified when denied, it follows this format: '0:reason'.
-
-  if type(cached_auth) ~= 'string' then
-    return true, nil
-  end
-
-  -- auth is nil. We only need to set it if the authorization is cached and
-  -- it has a valid value.
-  local auth, reason
-  if cached_auth:sub(1, 1) == '0' then
-    auth = false
-    if cached_auth:len() >= 3 then
-      reason = cached_auth:sub(3, -1)
-    end
-  elseif cached_auth:sub(1, 1) == '1' then
-    auth = true
-  end
-
-  return true, auth, reason
+  local auth, reason = authorizations_formatter.authorization(cached_auth)
+  return cached_auth ~= nil, auth, reason
 end
 
 -- Returns true if the report succeeds, false otherwise.

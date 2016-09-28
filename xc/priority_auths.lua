@@ -1,4 +1,5 @@
 local redis_pool = require 'lib/redis_pool'
+local authorizations_formatter = require 'xc/authorizations_formatter'
 
 local AUTH_REQUESTS_CHANNEL = 'xc_channel_auth_requests'
 local AUTH_RESPONSES_CHANNEL_PREFIX = 'xc_channel_auth_response:'
@@ -11,19 +12,6 @@ end
 
 local function auth_responses_channel(service_id, user_key, metric)
   return AUTH_RESPONSES_CHANNEL_PREFIX..service_id..':'..user_key..':'..metric
-end
-
-local function auth_from_msg(msg)
-  local auth, reason
-  if msg:sub(1, 1) == '0' then
-    auth = false
-    if msg:len() >= 3 then
-      reason = msg:sub(3, -1)
-    end
-  elseif msg:sub(1, 1) == '1' then
-    auth = true
-  end
-  return auth, reason
 end
 
 -- @return true if the authorization could be retrieved, false otherwise
@@ -75,7 +63,7 @@ function _M.authorize(service_id, user_key, metric)
     return false, nil
   end
 
-  local auth, reason = auth_from_msg(auth_msg)
+  local auth, reason = authorizations_formatter.authorization(auth_msg)
   return true, auth, reason
 end
 
