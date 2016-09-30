@@ -169,7 +169,7 @@ describe('xc', function()
           local reason = 'a_deny_reason'
 
           setup(function()
-            cache.authorize = function() return true, false, reason end
+            priority_auths.authorize = function() return true, false, reason end
           end)
 
           it('returns denied and a the reason', function()
