@@ -4,7 +4,7 @@ local redis = require 'resty.redis'
 local _M = {
   host      = os.getenv("REDIS_HOST") or 'xc-redis',
   port      = 6379,
-  timeout   = 1000,  -- 1 second
+  timeout   = 3000,  -- 3 seconds
   keepalive = 10000, -- milliseconds
   poolsize  = 1000   -- # connections
 }
