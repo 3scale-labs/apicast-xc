@@ -52,6 +52,7 @@ function _M.authorize(service_id, user_key, metric)
   local channel_reply = redis_sub:read_reply()
 
   if not channel_reply then
+    redis_pool.release(redis_sub)
     return false, nil
   end
 
