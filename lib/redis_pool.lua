@@ -2,7 +2,7 @@ local redis = require 'resty.redis'
 
 -- Redis connection parameters
 local _M = {
-  host      = os.getenv("REDIS_HOST") or 'xc-redis',
+  host      = os.getenv("REDIS_HOST") or 'localhost',
   port      = 6379,
   timeout   = 3000,  -- 3 seconds
   keepalive = 10000, -- milliseconds
