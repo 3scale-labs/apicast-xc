@@ -1,0 +1,16 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(dirname "$(readlink -f $0)")
+
+LUA_FILES="xc/*.lua lib/*.lua"
+
+cd ${SCRIPT_DIR}/..
+
+luacheck --std max+busted ${LUA_FILES} spec
+echo "Launching Redis..."
+nohup redis-server 2>/dev/null >&2 &
+sleep 2
+busted --verbose --coverage --shuffle
+ERR=$?
+kill -9 $(pidof redis-server)
+exit ${ERR}

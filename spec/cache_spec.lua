@@ -11,7 +11,7 @@ describe('cache', function()
     local redis = require 'redis'
 
     local redis_cfg = {
-      host = 'xc-redis',
+      host = 'localhost',
       port = 6379
     }
 
