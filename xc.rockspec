@@ -10,7 +10,8 @@ description = {
   detailed = [[
     This module caches calls to 3scale.
   ]],
-  homepage = "https://github.com/3scale/apicast-xc"
+  homepage = "https://github.com/3scale/apicast-xc",
+  license = "Apache-2.0"
 }
 dependencies = {
   "lua >= 5.1",
