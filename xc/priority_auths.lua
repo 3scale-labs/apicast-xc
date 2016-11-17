@@ -1,4 +1,4 @@
-local redis_pool = require 'lib/redis_pool'
+local redis_pool = require 'xc/redis_pool'
 local authorizations_formatter = require 'xc/authorizations_formatter'
 
 local AUTH_REQUESTS_CHANNEL = 'xc_channel_auth_requests'

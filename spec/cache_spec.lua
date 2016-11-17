@@ -30,12 +30,12 @@ describe('cache', function()
     redis_client = test_redis_client()
 
     -- Mock the redis pool to use the test redis client instead of resty.redis
-    package.loaded['lib/redis_pool'] = {
+    package.loaded['xc/redis_pool'] = {
       acquire = function() return redis_client, true end,
       release = function() return true end
     }
 
-    redis_pool = package.loaded['lib/redis_pool']
+    redis_pool = package.loaded['xc/redis_pool']
     cache = require 'xc/cache'
 
     -- assumes redis_pool.release is not changed in any of these tests
