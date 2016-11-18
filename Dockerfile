@@ -40,11 +40,11 @@ RUN ${BINDIR}/luarocks install luacheck \
 
 # Install XC
 RUN mkdir -p ${USER_HOME}/app
-COPY xc.rockspec app/
+COPY apicast_xc.rockspec app/
 RUN cd ${USER_HOME}/app \
- && XC_VERSION=$(cat xc.rockspec | grep -o -P '\s*version\s*=\s*"(.[^"]*)"\s*$' | sed -e 's/.*\"\([^\"]*\)"\s*$/\1/') \
- && ln -s xc.rockspec xc-${XC_VERSION}.rockspec \
- && ${BINDIR}/luarocks build --only-deps xc-${XC_VERSION}.rockspec
+ && XC_VERSION=$(cat apicast_xc.rockspec | grep -o -P '\s*version\s*=\s*"(.[^"]*)"\s*$' | sed -e 's/.*\"\([^\"]*\)"\s*$/\1/') \
+ && ln -s apicast_xc.rockspec apicast_xc-${XC_VERSION}.rockspec \
+ && ${BINDIR}/luarocks build --only-deps apicast_xc-${XC_VERSION}.rockspec
 
 COPY . app/
 

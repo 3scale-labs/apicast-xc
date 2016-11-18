@@ -1,7 +1,7 @@
-package = "xc"
+package = "apicast_xc"
 version = "0.1.0-1"
 source = {
-  url = "https://github.com/3scale/apicast-xc.git",
+  url = "https://github.com/3scale/xc.lua.git",
   dir = "xc",
   branch = "master"
 }
@@ -10,7 +10,7 @@ description = {
   detailed = [[
     This module caches calls to 3scale.
   ]],
-  homepage = "https://github.com/3scale/apicast-xc",
+  homepage = "https://github.com/3scale/xc.lua",
   license = "Apache-2.0"
 }
 dependencies = {
@@ -18,5 +18,6 @@ dependencies = {
   "redis-lua ~> 2.0.4"
 }
 build = {
-  type = "builtin"
+  type = "builtin",
+  modules = { ["apicast.xc"] = "apicast_xc.lua" }
 }
