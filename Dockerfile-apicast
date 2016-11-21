@@ -1,0 +1,25 @@
+# In the future, when Apicast provide a standard way to install modules this
+# Dockerfile might not be needed.
+FROM quay.io/3scale/apicast:v2
+
+USER root
+
+# Install everything we need to install XC depencies using luarocks
+RUN yum install -y epel-release \
+ && yum upgrade -y \
+ && yum install -y lua-devel make gcc wget unzip epel-release luarocks \
+ && yum clean all -y
+
+# If I do not run this, nginx gives an error while booting...
+RUN rm -rf /opt/app-root/src/logs
+
+USER default
+
+# Copy XC source code to the appropriate directory
+COPY . /opt/app-root/src/src/
+WORKDIR /opt/app-root/src/src/
+
+# Install XC dependencies
+RUN make apicast.xc
+
+WORKDIR /opt/app-root
