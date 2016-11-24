@@ -1,23 +1,13 @@
 local redis_pool = require 'xc/redis_pool'
 local authorizations_formatter = require 'xc/authorizations_formatter'
-
-local AUTH_REQUESTS_CHANNEL = 'xc_channel_auth_requests'
-local AUTH_RESPONSES_CHANNEL_PREFIX = 'xc_channel_auth_response:'
+local storage_keys = require 'xc/storage_keys'
 
 local _M = { }
-
-local function request_msg(service_id, user_key, metric)
-  return service_id..':'..user_key..':'..metric
-end
-
-local function auth_responses_channel(service_id, user_key, metric)
-  return AUTH_RESPONSES_CHANNEL_PREFIX..service_id..':'..user_key..':'..metric
-end
 
 -- @return true if the authorization could be retrieved, false otherwise
 -- @return true if authorized, false if denied, nil if unknown
 -- @return reason why the authorization is denied (optional, required only when denied)
-function _M.authorize(service_id, user_key, metric)
+function _M.authorize(service_id, credentials, metric)
   local redis_pub, ok_pub = redis_pool.acquire()
 
   if not ok_pub then
@@ -31,8 +21,8 @@ function _M.authorize(service_id, user_key, metric)
     return false, nil
   end
 
-  local res_pub = redis_pub:publish(AUTH_REQUESTS_CHANNEL,
-                                    request_msg(service_id, user_key, metric))
+  local res_pub = redis_pub:publish(storage_keys.AUTH_REQUESTS_CHANNEL,
+    storage_keys.get_pubsub_req_msg(service_id, credentials, metric))
 
   redis_pool.release(redis_pub)
 
@@ -42,7 +32,7 @@ function _M.authorize(service_id, user_key, metric)
   end
 
   local res_sub = redis_sub:subscribe(
-    auth_responses_channel(service_id, user_key, metric))
+    storage_keys.get_pubsub_auths_resp_channel(service_id, credentials, metric))
 
   if not res_sub then
     redis_pool.release(redis_sub)
