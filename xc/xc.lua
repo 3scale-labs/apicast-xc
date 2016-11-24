@@ -43,25 +43,25 @@ end
 -- entry point for the module
 --
 -- service_id: string with the service identifier
--- app_id: string with the application identifier as
---         * "user_key" OR
---         * "app_id:app_key" OR
---         * ...
---         Note: this might become more complex as we discover how to
---         handle different application authentication methods
--- usage:  table containing key-values of the form method-usage
---         Note: this is currently restricted to ONE key-value
-function _M.authrep(service_id, app_id, usage)
+-- credentials: table with the attributes required to authenticate an app.
+--              There are 3 auths modes in 3scale. Each of them accepts
+--              different params:
+--                * App ID: app_id (required), app_key, referrer, user_id.
+--                * User key: user_key (required), referrer, user_id.
+--                * Oauth: access_token (required), app_id, referrer, user_id.
+-- usage: table containing key-values of the form method-usage
+--        Note: this is currently restricted to ONE key-value
+function _M.authrep(service_id, credentials, usage)
   local usage_method, usage_val = next(usage)
 
   -- First, try to retrieve the authorization from the cache. If it's there,
   -- return it, and do the report if it's authorized. If the auth is not in the
   -- cache, use the priority auth renewer based on Redis pubsub to get it.
 
-  local cache_res = do_authrep(cache, service_id, app_id, usage_method, usage_val)
+  local cache_res = do_authrep(cache, service_id, credentials, usage_method, usage_val)
 
   if cache_res.auth == _M.auth.unknown then
-    cache_res = do_authrep(priority_auths, service_id, app_id, usage_method, usage_val)
+    cache_res = do_authrep(priority_auths, service_id, credentials, usage_method, usage_val)
   end
 
   return cache_res
