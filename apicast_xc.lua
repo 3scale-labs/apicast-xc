@@ -7,7 +7,7 @@ function _M.access()
   local service = ngx.ctx.service
   local credentials = service:extract_credentials(request)
   local usage = service:extract_usage(request)
-  local auth_status = xc.authrep(service.id, credentials.user_key, usage)
+  local auth_status = xc.authrep(service.id, credentials, usage)
 
   if auth_status.auth ~= xc.auth.ok then
     ngx.exit(403)
