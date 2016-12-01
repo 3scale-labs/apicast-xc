@@ -137,8 +137,6 @@ Compared to Apicast:
 
 These are some of the current limitations. They will be fixed if there is a need.
 
-- 3scale supports three authentication modes. However, currently XC only
-  supports the `user_key` one.
 - XC can only hit one application per request.
 - XC is not compatible with 3scale's request logs feature.
 - The timestamp of the reported transactions loses resolution. Transactions
