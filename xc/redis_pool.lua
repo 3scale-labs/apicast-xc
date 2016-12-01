@@ -6,7 +6,7 @@ local _M = {
   port      = 6379,
   timeout   = 3000,  -- 3 seconds
   keepalive = 10000, -- milliseconds
-  poolsize  = 1000   -- # connections
+  poolsize  = os.getenv("REDIS_CONN_POOL") or 1000 -- # connections
 }
 
 -- @return table with a redis connection from the pool
