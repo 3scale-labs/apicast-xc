@@ -13,9 +13,9 @@ local _M = {
   }
 }
 
-local function do_authrep(auth_storage, service_id, app_id, usage_method, usage_val)
+local function do_authrep(auth_storage, service_id, credentials, usage_method, usage_val)
   local auth_ok, cached_auth, reason = auth_storage.authorize(
-    service_id, app_id, usage_method)
+    service_id, credentials, usage_method)
 
   local output = { auth = _M.auth.unknown }
 
@@ -26,7 +26,7 @@ local function do_authrep(auth_storage, service_id, app_id, usage_method, usage_
 
   if cached_auth then
     output.auth = _M.auth.ok
-    local report_ok = cache.report(service_id, app_id, usage_method, usage_val)
+    local report_ok = cache.report(service_id, credentials, usage_method, usage_val)
 
     if not report_ok then
       output.error = _M.error.cache_report_failed
