@@ -1,20 +1,11 @@
 local redis_pool = require 'xc/redis_pool'
 local authorizations_formatter = require 'xc/authorizations_formatter'
+local storage_keys = require 'xc/storage_keys'
 
 local _M = { }
 
-local function get_auth_hash_key(service_id, app_id)
-  return 'auth:'..service_id..':'..app_id
-end
-
-local function get_report_hash_key(service_id, app_id)
-  return 'report:'..service_id..':'..app_id
-end
-
-local SET_REPORT_KEYS = 'report_keys'
-
 -- Returns true when executed correctly. False otherwise.
-local function report_and_update_reported_set(service_id, app_id, usage_method, usage_val, redis)
+local function report_and_update_reported_set(service_id, creds, usage_method, usage_val, redis)
   -- Use redis multi to ensure that the 2 commands are executed atomically so
   -- noone can observe an inconsistent state between their execution.
 
@@ -23,14 +14,14 @@ local function report_and_update_reported_set(service_id, app_id, usage_method, 
     return false
   end
 
-  local report_hash_key = get_report_hash_key(service_id, app_id)
+  local report_hash_key = storage_keys.get_report_key(service_id, creds)
   local res_hincrby, _ = redis:hincrby(report_hash_key, usage_method, usage_val)
   if not res_hincrby then
     redis:discard()
     return false
   end
 
-  local res_sadd, _ = redis:sadd(SET_REPORT_KEYS, report_hash_key)
+  local res_sadd, _ = redis:sadd(storage_keys.SET_REPORT_KEYS, report_hash_key)
   if not res_sadd then
     redis:discard()
     return false
@@ -43,14 +34,14 @@ end
 -- @return true if the authorization could be retrieved, false otherwise
 -- @return true if authorized, false if denied, nil if unknown
 -- @return reason why the authorization is denied (optional)
-function _M.authorize(service_id, app_id, usage_method)
+function _M.authorize(service_id, credentials, usage_method)
   local redis, ok = redis_pool.acquire()
 
   if not ok then
     return false, nil
   end
 
-  local auth_hash_key = get_auth_hash_key(service_id, app_id)
+  local auth_hash_key = storage_keys.get_auth_key(service_id, credentials)
   local cached_auth, _ = redis:hget(auth_hash_key, usage_method)
 
   redis_pool.release(redis)

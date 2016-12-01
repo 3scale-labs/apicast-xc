@@ -2,6 +2,7 @@ describe('cache', function()
   local cache
   local redis_client
   local redis_pool
+  local storage_keys = require 'xc/storage_keys'
 
   -- Use a spy to ensure that Redis connections are not leaked
   local spy_redis_release
@@ -48,28 +49,28 @@ describe('cache', function()
 
   describe('authorize', function()
     local service_id = 'a_service_id'
-    local app_id = 'an_app_id'
+    local creds = { app_id = 'an_app_id' }
     local method = 'a_method'
+    local auth_key = storage_keys.get_auth_key(service_id, creds)
 
     describe('when the authorization is cached and it is OK', function()
       setup(function()
-        -- TODO: avoid constructing the hash key here
-        redis_client:hset('auth:'..service_id..':'..app_id, method, '1')
+        redis_client:hset(auth_key, method, '1')
       end)
 
       it('returns true', function()
-        local ok, cached_auth = cache.authorize(service_id, app_id, method)
+        local ok, cached_auth = cache.authorize(service_id, creds, method)
         assert.is_true(ok)
         assert.is_true(cached_auth)
       end)
 
       it('releases the Redis connection', function()
-        cache.authorize(service_id, app_id, method)
+        cache.authorize(service_id, creds, method)
         assert.equals(1, #spy_redis_release.calls)
       end)
 
       teardown(function()
-        redis_client:del('auth:'..service_id..':'..app_id)
+        redis_client:del(auth_key)
       end)
     end)
 
@@ -77,13 +78,12 @@ describe('cache', function()
       describe('and a reason is specified', function()
         local reason = 'a_reason'
         setup(function()
-          redis_client:hset(
-            'auth:'..service_id..':'..app_id, method, '0:'..reason)
+          redis_client:hset(auth_key, method, '0:'..reason)
         end)
 
         it('returns false', function()
           local ok, cached_auth, cached_reason = cache.authorize(
-            service_id, app_id, method)
+            service_id, creds, method)
           assert.is_true(ok)
           assert.is_false(cached_auth)
           assert.are.same(reason, cached_reason)
@@ -92,23 +92,23 @@ describe('cache', function()
 
       describe('and the reason is not specified', function()
         setup(function()
-          redis_client:hset('auth:'..service_id..':'..app_id, method, '0')
+          redis_client:hset(auth_key, method, '0')
         end)
 
         it('returns false', function()
-          local ok, cached_auth = cache.authorize(service_id, app_id, method)
+          local ok, cached_auth = cache.authorize(service_id, creds, method)
           assert.is_true(ok)
           assert.is_false(cached_auth)
         end)
       end)
 
       it('releases the Redis connection', function()
-        cache.authorize(service_id, app_id, method)
+        cache.authorize(service_id, creds, method)
         assert.equals(1, #spy_redis_release.calls)
       end)
 
       teardown(function()
-        redis_client:del('auth:'..service_id..':'..app_id)
+        redis_client:del(auth_key)
       end)
     end)
 
@@ -119,13 +119,13 @@ describe('cache', function()
       end)
 
       it('returns nil', function()
-        local ok, cached_auth = cache.authorize(service_id, app_id, method)
+        local ok, cached_auth = cache.authorize(service_id, creds, method)
         assert.is_true(ok)
         assert.is_nil(cached_auth)
       end)
 
       it('releases the Redis connection', function()
-        cache.authorize(service_id, app_id, method)
+        cache.authorize(service_id, creds, method)
         assert.equals(1, #spy_redis_release.calls)
       end)
 
@@ -136,22 +136,22 @@ describe('cache', function()
 
     describe('when the authorization is cached and it has an invalid value', function()
       setup(function()
-        redis_client:hset('auth:'..service_id..':'..app_id, method, 'corrupted_value')
+        redis_client:hset(auth_key, method, 'corrupted_value')
       end)
 
       it('returns nil', function()
-        local ok, cached_auth = cache.authorize(service_id, app_id, method)
+        local ok, cached_auth = cache.authorize(service_id, creds, method)
         assert.is_true(ok)
         assert.is_nil(cached_auth)
       end)
 
       it('releases the Redis connection', function()
-        cache.authorize(service_id, app_id, method)
+        cache.authorize(service_id, creds, method)
         assert.equals(1, #spy_redis_release.calls)
       end)
 
       teardown(function()
-        redis_client:del('auth:'..service_id..':'..app_id)
+        redis_client:del(auth_key)
       end)
     end)
 
@@ -161,7 +161,7 @@ describe('cache', function()
       end)
 
       it('returns an error', function()
-        local ok = cache.authorize(service_id, app_id, method)
+        local ok = cache.authorize(service_id, creds, method)
         assert.is_false(ok)
       end)
 
@@ -178,12 +178,12 @@ describe('cache', function()
       end)
 
       it('returns an error', function()
-        local ok = cache.authorize(service_id, app_id, method)
+        local ok = cache.authorize(service_id, creds, method)
         assert.is_false(ok)
       end)
 
       it('releases the Redis connection', function()
-        cache.authorize(service_id, app_id, method)
+        cache.authorize(service_id, creds, method)
         assert.equals(1, #spy_redis_release.calls)
       end)
 
@@ -195,13 +195,12 @@ describe('cache', function()
 
   describe('report', function()
     local service_id = 'a_service_id'
-    local app_id = 'an_app_id'
+    local creds = { app_id = 'an_app_id' }
     local method = 'a_method'
     local usage_val = 10
 
-    -- TODO: Try not to hardcode these 2 here
-    local report_key = 'report:'..service_id..':'..app_id
-    local report_keys_set = 'report_keys'
+    local report_key = storage_keys.get_report_key(service_id, creds)
+    local report_keys_set = storage_keys.SET_REPORT_KEYS
 
     after_each(function()
       redis_client:del(report_key)
@@ -216,41 +215,41 @@ describe('cache', function()
       end)
 
       it('increases the cached value by the one reported', function()
-        cache.report(service_id, app_id, method, usage_val)
+        cache.report(service_id, creds, method, usage_val)
 
         local cached_val = redis_client:hget(report_key, method)
         assert.are_equals(current_usage + usage_val, tonumber(cached_val))
       end)
 
       it('returns true', function()
-        assert.is_true(cache.report(service_id, app_id, method, usage_val))
+        assert.is_true(cache.report(service_id, creds, method, usage_val))
       end)
 
       it('releases the Redis connection', function()
-        cache.report(service_id, app_id, method, usage_val)
+        cache.report(service_id, creds, method, usage_val)
         assert.equals(1, #spy_redis_release.calls)
       end)
     end)
 
     describe('when the usage is not cached and there are no DB connection errors', function()
       it('caches the reported value', function()
-        cache.report(service_id, app_id, method, usage_val)
+        cache.report(service_id, creds, method, usage_val)
 
         local cached_val = redis_client:hget(report_key, method)
         assert.are_equals(usage_val, tonumber(cached_val))
       end)
 
       it('adds the report hash key to the set of modified keys', function()
-        cache.report(service_id, app_id, method, usage_val)
+        cache.report(service_id, creds, method, usage_val)
         assert.are_equals(report_key, redis_client:smembers(report_keys_set)[1])
       end)
 
       it('returns true', function()
-        assert.is_true(cache.report(service_id, app_id, method, usage_val))
+        assert.is_true(cache.report(service_id, creds, method, usage_val))
       end)
 
       it('releases the Redis connection', function()
-        cache.report(service_id, app_id, method, usage_val)
+        cache.report(service_id, creds, method, usage_val)
         assert.equals(1, #spy_redis_release.calls)
       end)
     end)
@@ -261,7 +260,7 @@ describe('cache', function()
       end)
 
       it('returns false', function()
-        assert.is_false(cache.report(service_id, app_id, method, usage_val))
+        assert.is_false(cache.report(service_id, creds, method, usage_val))
       end)
 
       teardown(function()
@@ -282,21 +281,21 @@ describe('cache', function()
       end)
 
       it('returns false', function()
-        assert.is_false(cache.report(service_id, app_id, method, usage_val))
+        assert.is_false(cache.report(service_id, creds, method, usage_val))
       end)
 
       it('does not cache the usage', function()
-        cache.report(service_id, app_id, method, usage_val)
+        cache.report(service_id, creds, method, usage_val)
         assert.is_nil(redis_client:hget(report_key, method))
       end)
 
       it('does not update the set of updated keys', function()
-        cache.report(service_id, app_id, method, usage_val)
+        cache.report(service_id, creds, method, usage_val)
         assert.are.same({}, redis_client:smembers(report_keys_set))
       end)
 
       it('releases the Redis connection', function()
-        cache.report(service_id, app_id, method, usage_val)
+        cache.report(service_id, creds, method, usage_val)
         assert.equals(1, #spy_redis_release.calls)
       end)
 
