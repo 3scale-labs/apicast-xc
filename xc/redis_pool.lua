@@ -1,9 +1,23 @@
 local redis = require 'resty.redis'
 
+local function get_host_and_port(s)
+  local res = { }
+  local i = 1
+
+  for str in string.gmatch(s, '[^:]+') do
+    res[i] = str
+    i = i + 1
+  end
+
+  return res
+end
+
+local host, port = unpack(get_host_and_port(os.getenv("REDIS_HOST")))
+
 -- Redis connection parameters
 local _M = {
-  host      = os.getenv("REDIS_HOST") or 'localhost',
-  port      = 6379,
+  host      = host or 'localhost',
+  port      = tonumber(port) or 6379,
   timeout   = 3000,  -- 3 seconds
   keepalive = 10000, -- milliseconds
   poolsize  = os.getenv("REDIS_CONN_POOL") or 10000 -- # connections
