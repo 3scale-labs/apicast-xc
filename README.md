@@ -70,8 +70,7 @@ xcflushd is a daemon that basically takes care of:
    cached.
 
 For further details about xcflushd, please go to its [GitHub repo](https://github.com/3scale/xcflushd).
-
-A detailed design document will be provided later.
+For a more detailed explanation about how XC works, please check this [design doc](doc/design.md).
 
 
 ## Deployment
