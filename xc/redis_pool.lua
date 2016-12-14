@@ -12,7 +12,7 @@ local function get_host_and_port(s)
   return res
 end
 
-local host, port = unpack(get_host_and_port(os.getenv("REDIS_HOST")))
+local host, port = unpack(get_host_and_port(os.getenv("XC_REDIS_HOST")))
 
 -- Redis connection parameters
 local _M = {
