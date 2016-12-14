@@ -13,6 +13,12 @@ function _M.access()
     ngx.exit(403)
   end
 
+  -- ngx.var.secret_token is set in the access() method of the Apicast default
+  -- module. That means that if we do not set it here, it will never be set.
+  -- Hopefully, in the future, Apicast will set the secret token in a way
+  -- so that 3rd party modules do not need have to.
+  ngx.var.secret_token = service.secret_token
+
   -- TODO: For now, exiting with 403 is good enough. However, in auth_status we
   -- have some information that can help us to have a more sophisticated error
   -- handling. if the authorization is not ok, it could be denied or unkown
