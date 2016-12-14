@@ -83,7 +83,7 @@ with XC is very similar to deploying Apicast. The only difference is that XC
 needs two environment variables not required in Apicast:
 ```
 APICAST_MODULE=apicast_xc
-REDIS_HOST=your_redis_host.com:6379
+XC_REDIS_HOST=your_redis_host.com:6379
 ```
 
 ### Docker
@@ -95,7 +95,7 @@ $ docker build -t apicast-xc -f Dockerfile-apicast .
 
 Run:
 ```
-$ docker run --name apicast --rm -p 8080:8080 -e REDIS_HOST=your_redis_host.com:6379 -e APICAST_MODULE=apicast_xc -e THREESCALE_PORTAL_ENDPOINT=https://access-token@account-admin.3scale.net apicast-xc
+$ docker run --name apicast --rm -p 8080:8080 -e XC_REDIS_HOST=your_redis_host.com:6379 -e APICAST_MODULE=apicast_xc -e THREESCALE_PORTAL_ENDPOINT=https://access-token@account-admin.3scale.net apicast-xc
 ```
 
 ### Locally
@@ -106,7 +106,7 @@ $ docker run --name apicast --rm -p 8080:8080 -e REDIS_HOST=your_redis_host.com:
 
 Apicast can then be executed like this:
 ```
-$ REDIS_HOST=your_redis_host.com:6379 APICAST_MODULE=apicast_xc THREESCALE_CONFIG_FILE=config.json bin/apicast
+$ XC_REDIS_HOST=your_redis_host.com:6379 APICAST_MODULE=apicast_xc THREESCALE_CONFIG_FILE=config.json bin/apicast
 ```
 
 For a more detailed explanation about deploying Apicast and running it, please
