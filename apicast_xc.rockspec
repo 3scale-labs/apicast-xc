@@ -1,5 +1,5 @@
 package = "apicast_xc"
-version = "1.0.0.beta1-1"
+version = "1.0.0.rc1-1"
 source = {
   url = "https://github.com/3scale/xc.lua.git",
   dir = "xc",
