@@ -1,7 +1,7 @@
 package = "apicast_xc"
 version = "1.0.0.rc1-1"
 source = {
-  url = "https://github.com/3scale/xc.lua.git",
+  url = "https://github.com/3scale/apicast-xc.git",
   dir = "xc",
   branch = "master"
 }
@@ -10,7 +10,7 @@ description = {
   detailed = [[
     This module caches calls to 3scale.
   ]],
-  homepage = "https://github.com/3scale/xc.lua",
+  homepage = "https://github.com/3scale/apicast-xc",
   license = "Apache-2.0"
 }
 dependencies = {

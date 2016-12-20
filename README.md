@@ -16,10 +16,10 @@ You will need [Docker](https://www.docker.com/) and GNU make.
 
 First, clone the project:
 ```
-$ git clone git@github.com:3scale/xc.lua.git
+$ git clone git@github.com:3scale/apicast-xc.git
 ```
 
-Next, cd into the directory, `cd xc.lua`
+Next, cd into the directory, `cd apicast-xc`
 
 Run the tests with:
 ```
