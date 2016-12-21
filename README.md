@@ -1,5 +1,6 @@
 # XC
 
+[![Build Status](https://travis-ci.org/3scale/apicast-xc.svg?branch=master)](https://travis-ci.org/3scale/apicast-xc)
 
 ## Description
 
