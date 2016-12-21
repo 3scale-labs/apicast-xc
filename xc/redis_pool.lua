@@ -1,6 +1,8 @@
 local redis = require 'resty.redis'
 
 local function get_host_and_port(s)
+  if s == nil then return { } end
+
   local res = { }
   local i = 1
 
