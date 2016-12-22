@@ -4,8 +4,8 @@
 
 ## Description
 
-XC is a module for [Apicast](https://github.com/3scale/apicast), 3scale's API Gateway.
-Apicast performs one call to 3scale's backend for each request that it
+XC is a module for [APIcast](https://github.com/3scale/apicast), 3scale's API Gateway.
+APIcast performs one call to 3scale's backend for each request that it
 receives. The goal of XC is to reduce latency and increase throughput by
 significantly reducing the number of requests made to 3scale's backend. In order
 to achieve that, XC caches authorization statuses and reports.
@@ -76,12 +76,12 @@ For a more detailed explanation about how XC works, please check this [design do
 
 ## Deployment
 
-At the moment, deploying Apicast with XC is not as convenient as we would like.
+At the moment, deploying APIcast with XC is not as convenient as we would like.
 We are currently working on offering an easy way to deploy it on [Openshift](https://www.openshift.com).
 
-In the meanwhile, you can use Docker or deploy XC locally. Deploying Apicast
-with XC is very similar to deploying Apicast. The only difference is that XC
-needs two environment variables not required in Apicast:
+In the meanwhile, you can use Docker or deploy XC locally. Deploying APIcast
+with XC is very similar to deploying APIcast. The only difference is that XC
+needs two environment variables not required in APIcast:
 ```
 APICAST_MODULE=apicast_xc
 XC_REDIS_HOST=your_redis_host.com:6379
@@ -103,21 +103,21 @@ $ docker run --name apicast --rm -p 8080:8080 -e XC_REDIS_HOST=your_redis_host.c
 
 - Run `make apicast.xc` to install XC's dependencies.
 - Copy `apicast_xc.lua` and the `xc` directory of this repo into the `src`
-  directory of Apicast.
+  directory of APIcast.
 
-Apicast can then be executed like this:
+APIcast can then be executed like this:
 ```
 $ XC_REDIS_HOST=your_redis_host.com:6379 APICAST_MODULE=apicast_xc THREESCALE_CONFIG_FILE=config.json bin/apicast
 ```
 
-For a more detailed explanation about deploying Apicast and running it, please
+For a more detailed explanation about deploying APIcast and running it, please
 check its [GitHub repo](https://github.com/3scale/apicast).
 
 Remember that you'll also need [xcflushd](https://github.com/3scale/xcflushd) running.
 
 ## Trade-offs
 
-Compared to Apicast:
+Compared to APIcast:
 
 ### Pros
 - Considerably lower latencies and higher throughput.
@@ -126,7 +126,7 @@ Compared to Apicast:
 
 ### Cons
 - Needs two extra components to work: Redis and the flusher.
-- Going over the defined usage limits is easier. Apicast reports to 3scale
+- Going over the defined usage limits is easier. APIcast reports to 3scale
   every time it receives a request. Reports are asynchronous and that
   means that we can go over the limits for a brief window of time. On the other
   hand, XC reports every X minutes (configurable) to 3scale. The window of time
@@ -140,7 +140,7 @@ These are some of the current limitations. They will be fixed if there is a need
 - XC can only hit one application per request.
 - XC is not compatible with 3scale's request logs feature.
 - The timestamp of the reported transactions loses resolution. Transactions
-  are assigned a timestamp when they are reported to 3scale. With Apicast this
+  are assigned a timestamp when they are reported to 3scale. With APIcast this
   happens in every request. On the other hand, with XC this happens when the
   flusher sends the reports. This happens every X minutes (configurable).
 

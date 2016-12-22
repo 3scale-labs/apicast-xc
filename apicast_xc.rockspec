@@ -6,7 +6,7 @@ source = {
   branch = "master"
 }
 description = {
-  summary = "XC for Apicast",
+  summary = "XC for APIcast",
   detailed = [[
     This module caches calls to 3scale.
   ]],

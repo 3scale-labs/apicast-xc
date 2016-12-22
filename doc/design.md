@@ -2,10 +2,10 @@
 
 ## Description
 
-XC is a module for [Apicast](https://github.com/3scale/apicast), 3scale's API
+XC is a module for [APIcast](https://github.com/3scale/apicast), 3scale's API
 Gateway.
 
-When Apicast receives a request, it performs an `authrep` call to 3scale's
+When APIcast receives a request, it performs an `authrep` call to 3scale's
 backend. This `authrep` call consists of:
 
 1. Checking whether the request is authorized. 3scale lets its users define
@@ -54,7 +54,7 @@ If you want to learn more about the 3scale platform, you can check the
 
 ## How does XC work
 
-XC uses two software components that are not needed when using vanilla Apicast:
+XC uses two software components that are not needed when using vanilla APIcast:
 
 - [Redis](https://redis.io/): in-memory database where authorizations and usage
   reports are cached.
@@ -67,7 +67,7 @@ XC uses two software components that are not needed when using vanilla Apicast:
     3. Retrieving an authorization status from 3scale backend when it is not
        cached.
 
-XC receives from Apicast all the information needed to authorize and report the
+XC receives from APIcast all the information needed to authorize and report the
 usage of an application. This includes: a service ID, credentials, and the
 metrics to be reported. The credentials received depend on the authorization
 mode used. XC supports three authentication modes from 3scale: app ID, app key,
