@@ -1,4 +1,5 @@
 local redis = require 'resty.redis'
+local threescale_utils = require 'threescale_utils'
 
 local function get_host_and_port(s)
   if s == nil then return { } end
@@ -31,7 +32,7 @@ function _M.acquire()
 
   conn:set_timeout(_M.timeout)
 
-  local ok, err = conn:connect(_M.host, _M.port)
+  local ok, err = conn:connect(threescale_utils.resolve(_M.host, _M.port))
 
   return conn, ok, err
 end
