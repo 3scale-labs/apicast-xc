@@ -117,6 +117,26 @@ describe('storage_keys', function()
         assert.are.same(expected, actual)
       end)
     end)
+
+    it('includes all the credentials needed to identify a report', function()
+      -- These are all the credentials that we can find in a report key.
+      local all_report_creds = { ['access_token'] = 'an_access_token',
+                                 ['app_id'] = 'an_app_id',
+                                 ['app_key'] = 'an_app_key',
+                                 ['user_id'] = 'a_user_id',
+                                 ['user_key'] = 'a_user_key' }
+
+      local encoded_creds = {}
+      for key, value in pairs(all_report_creds) do
+        table.insert(encoded_creds, key .. ':' .. value)
+      end
+      table.sort(encoded_creds) -- Credentials appear sorted in the key
+      encoded_creds = table.concat(encoded_creds, ',')
+
+      local expected = 'report,' .. 'service_id:' .. service_id .. ',' .. encoded_creds
+      local actual = storage_keys.get_report_key(service_id, all_report_creds)
+      assert.are.same(expected, actual)
+    end)
   end)
 
   describe('get_pubsub_req_msg', function()
