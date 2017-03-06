@@ -10,7 +10,11 @@ local _M = { AUTH_REQUESTS_CHANNEL = 'xc_channel_auth_requests',
 
 local AUTH_RESPONSES_CHANNEL_PREFIX = 'xc_channel_auth_response:'
 
-local REPORT_CREDS_IN_KEY = { 'app_id', 'user_key', 'access_token', 'user_id' }
+local REPORT_CREDS_IN_KEY = { 'app_id',
+                              'user_key',
+                              'access_token',
+                              'user_id',
+                              'app_key' }
 
 -- Escapes ':' and ','.
 local function escape(string)
@@ -84,7 +88,7 @@ end
 -- keys. However, for reporting, we do not care about the referrer, because
 -- the app is still the same. That's why the referrer is not included in
 -- 'report' keys. The credentials that can be used for reporting are: 'app_id',
--- 'user_key', 'access_token', 'user_id'.
+-- 'user_key', 'access_token', 'user_id', 'app_key'.
 --
 -- Params:
 -- service_id: String. Service ID.
