@@ -138,7 +138,6 @@ Compared to APIcast:
 These are some of the current limitations. They will be fixed if there is a need.
 
 - XC can only hit one application per request.
-- XC is not compatible with 3scale's request logs feature.
 - The timestamp of the reported transactions loses resolution. Transactions
   are assigned a timestamp when they are reported to 3scale. With APIcast this
   happens in every request. On the other hand, with XC this happens when the
