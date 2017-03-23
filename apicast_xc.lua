@@ -1,13 +1,17 @@
 local xc = require 'xc/xc'
+local utils = require 'xc/utils'
 
 local _M = require 'apicast'
 
 function _M.access()
   local request = ngx.var.request
   local service = ngx.ctx.service
+
   local credentials = service:extract_credentials(request)
+  local parsed_creds = utils.parse_apicast_creds(credentials)
+
   local usage = service:extract_usage(request)
-  local auth_status = xc.authrep(tostring(service.id), credentials, usage)
+  local auth_status = xc.authrep(tostring(service.id), parsed_creds, usage)
 
   if auth_status.auth ~= xc.auth.ok then
     ngx.exit(403)
