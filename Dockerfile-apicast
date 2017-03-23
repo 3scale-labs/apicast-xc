@@ -1,6 +1,6 @@
 # In the future, when APIcast provide a standard way to install modules this
 # Dockerfile might not be needed.
-FROM quay.io/3scale/apicast:v3.0.0-alpha2
+FROM quay.io/3scale/apicast:v3.0.0-beta3
 
 USER root
 
@@ -9,9 +9,6 @@ RUN yum install -y epel-release \
  && yum upgrade -y \
  && yum install -y lua-devel make gcc wget unzip epel-release luarocks \
  && yum clean all -y
-
-# If I do not run this, nginx gives an error while booting...
-RUN rm -rf /opt/app-root/src/logs
 
 USER default
 
