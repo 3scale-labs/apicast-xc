@@ -13,10 +13,11 @@ RUN yum install -y epel-release \
 USER default
 
 # Copy XC source code to the appropriate directory
-COPY . /opt/app-root/src/src/
-WORKDIR /opt/app-root/src/src/
+COPY apicast_xc.lua apicast_xc.rockspec Makefile /opt/app-root/src/src/
+COPY xc /opt/app-root/src/src/xc
 
 # Install XC dependencies
+WORKDIR /opt/app-root/src/src/
 RUN make apicast.xc
 
 WORKDIR /opt/app-root
