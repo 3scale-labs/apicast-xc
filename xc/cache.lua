@@ -35,9 +35,10 @@ end
 -- @return true if authorized, false if denied, nil if unknown
 -- @return reason why the authorization is denied (optional)
 function _M.authorize(service_id, credentials, usage_method)
-  local redis, ok = redis_pool.acquire()
+  local redis, ok, err = redis_pool.acquire()
 
   if not ok then
+    ngx.log(ngx.WARN, "[cache] couldn't connect to redis on authorization: ", err)
     return false, nil
   end
 
@@ -52,8 +53,9 @@ end
 
 -- Returns true if the report succeeds, false otherwise.
 function _M.report(service_id, app_id, usage_method, usage_val)
-  local redis, ok = redis_pool.acquire()
+  local redis, ok, err = redis_pool.acquire()
   if not ok then
+    ngx.log(ngx.WARN, "[cache] couldn't connect to redis on reporting: ", err)
     return false
   end
 
