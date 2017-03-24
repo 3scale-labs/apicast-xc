@@ -1,16 +1,19 @@
-FROM ubuntu:xenial
+FROM centos:7
 
 MAINTAINER David Ortiz López <dortiz@redhat.com>
 
 # Install dependencies
-ARG BUILD_DEPS="sudo curl wget vim unzip python-pip build-essential"
-RUN apt-get update
-RUN apt-get install ${BUILD_DEPS} -y
+ARG BUILD_DEPS="sudo curl wget vim unzip python-pip make gcc sysvinit-tools"
+RUN yum -y update \
+  && yum -y install epel-release \
+  && yum -y install ${BUILD_DEPS} \
+  && yum -y autoremove \
+  && yum -y clean all
 
 # Configure user
 ARG USER_NAME=user
-ENV USER_HOME="/home/${USER_NAME}" DEBIAN_FRONTEND=noninteractive
-RUN adduser --disabled-password --home ${USER_HOME} --shell /bin/bash --gecos "" ${USER_NAME}
+ENV USER_HOME="/home/${USER_NAME}"
+RUN adduser --home-dir ${USER_HOME} --shell /bin/bash ${USER_NAME}
 RUN echo "${USER_NAME} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/${USER_NAME} \
  && chmod 0440 /etc/sudoers.d/${USER_NAME} \
  && passwd -d ${USER_NAME} \
@@ -30,8 +33,9 @@ ARG LUA="luajit=2.1"
 ARG PREFIX=${USER_HOME}
 ARG BINDIR=${PREFIX}/bin
 ENV PATH="${BINDIR}:${PATH}"
+RUN pip install --install-option="--install-scripts=${BINDIR}" hererocks \
+  && chown -R ${USER_NAME}: ${BINDIR}
 USER ${USER_NAME}
-RUN pip install --install-option="--install-scripts=${BINDIR}" hererocks
 RUN ${BINDIR}/hererocks ${PREFIX} -r^ --${LUA}
 RUN ${BINDIR}/luarocks install luacheck \
  && ${BINDIR}/luarocks install busted \
