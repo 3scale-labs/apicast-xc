@@ -32,9 +32,17 @@ function _M.acquire()
 
   conn:set_timeout(_M.timeout)
 
-  local ok, err = conn:connect(threescale_utils.resolve(_M.host, _M.port))
+  local resolved_ok, ip, port = pcall(threescale_utils.resolve, _M.host, _M.port)
 
-  return conn, ok, err
+  local res_ok, err
+  if resolved_ok then
+    res_ok, err = conn:connect(ip, port)
+  else
+    res_ok = false
+    err = 'Failed to resolve redis hostname'
+  end
+
+  return conn, res_ok, err
 end
 
 -- return ownership of this connection to the pool
