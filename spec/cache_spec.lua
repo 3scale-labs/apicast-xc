@@ -7,6 +7,9 @@ describe('cache', function()
   -- Use a spy to ensure that Redis connections are not leaked
   local spy_redis_release
 
+  -- Use a spy to ensure that warning are logged as expected
+  local spy_logger
+
   -- The redis client used in testing. It uses lua-redis instead of resty.redis
   local function test_redis_client()
     local redis = require 'redis'
@@ -41,10 +44,15 @@ describe('cache', function()
 
     -- assumes redis_pool.release is not changed in any of these tests
     spy_redis_release = spy.on(redis_pool, 'release')
+
+    -- mock ngx and its logger
+    _G.ngx = { log = function() end }
+    spy_logger = spy.on(_G.ngx, 'log')
   end)
 
   before_each(function()
     spy_redis_release:clear() -- reset call history
+    spy_logger:clear()
   end)
 
   describe('authorize', function()
@@ -165,6 +173,11 @@ describe('cache', function()
         assert.is_false(ok)
       end)
 
+      it('logs a warning', function()
+        cache.authorize(service_id, creds, method)
+        assert.equals(1, #spy_logger.calls)
+      end)
+
       teardown(function()
         redis_pool.acquire = function() return redis_client, true end
       end)
@@ -261,6 +274,11 @@ describe('cache', function()
 
       it('returns false', function()
         assert.is_false(cache.report(service_id, creds, method, usage_val))
+      end)
+
+      it('logs a warning', function()
+        cache.report(service_id, creds, method, usage_val)
+        assert.equals(1, #spy_logger.calls)
       end)
 
       teardown(function()
