@@ -10,6 +10,7 @@ receives. The goal of XC is to reduce latency and increase throughput by
 significantly reducing the number of requests made to 3scale's backend. In order
 to achieve that, XC caches authorization statuses and reports.
 
+The current version works with [APIcast v.3.0.0-rc1](https://github.com/3scale/apicast/releases/tag/v3.0.0-rc1)
 
 ## Development environment and testing
 
