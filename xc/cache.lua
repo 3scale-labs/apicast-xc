@@ -5,30 +5,27 @@ local storage_keys = require 'xc/storage_keys'
 local _M = { }
 
 -- Returns true when executed correctly. False otherwise.
+-- Note: The two commands of this method can be executed in a pipeline.
+-- Multi/exec would ensure that the 2 commands are executed atomically, but it
+-- would make things considerably slower and increase the CPU usage of the
+-- Redis server. In our case we do not really need atomicity:
+-- 1) If a flush is triggered between the two commands, the flusher will not
+--    report the usage in that cycle, but it will report it in the next one.
+--    Also, this would only happen when it is the first time that the method is
+--    reported in that cycle. Otherwise, it will be reported anyway.
+-- 2) If a flush is triggered between the two commands and the method is not
+--    reported in the next cycle, the flusher will find a key in the set of
+--    report keys that does not exist. It is a bit counter-intuitive but the
+--    flusher needs to treat this as a non-error. This is the only downside of
+--    not using multi/exec.
 local function report_and_update_reported_set(service_id, creds, usage_method, usage_val, redis)
-  -- Use redis multi to ensure that the 2 commands are executed atomically so
-  -- noone can observe an inconsistent state between their execution.
-
-  local res_multi, _ = redis:multi()
-  if not res_multi then
-    return false
-  end
+  redis:init_pipeline(2)
 
   local report_hash_key = storage_keys.get_report_key(service_id, creds)
-  local res_hincrby, _ = redis:hincrby(report_hash_key, usage_method, usage_val)
-  if not res_hincrby then
-    redis:discard()
-    return false
-  end
+  redis:hincrby(report_hash_key, usage_method, usage_val)
+  redis:sadd(storage_keys.SET_REPORT_KEYS, report_hash_key)
 
-  local res_sadd, _ = redis:sadd(storage_keys.SET_REPORT_KEYS, report_hash_key)
-  if not res_sadd then
-    redis:discard()
-    return false
-  end
-
-  local res_exec, _ = redis:exec()
-  return res_exec
+  return redis:commit_pipeline() ~= nil
 end
 
 -- @return true if the authorization could be retrieved, false otherwise
