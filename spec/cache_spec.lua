@@ -21,11 +21,12 @@ describe('cache', function()
 
     local client = redis.connect(redis_cfg.host, redis_cfg.port)
 
-    -- redis-lua and resty.redis use a different syntax for multi. We do not
-    -- need multi for testing, but we need to make sure that our client defines
-    -- the 2 methods used by resty.redis: multi() and exec()
-    client.multi = function() return true end
-    client.exec = function() return true end
+    -- redis-lua and resty.redis use a different syntax for pipelining. We do
+    -- not need pipeline for testing, but we need to make sure that our client
+    -- defines the 2 methods used by resty.redis: init_pipeline() and
+    -- commit_pipeline().
+    client.init_pipeline = function() return true end
+    client.commit_pipeline = function() return true end
 
     return client
   end
@@ -289,12 +290,12 @@ describe('cache', function()
     describe('when there is an error reporting to Redis', function()
       setup(function()
         -- we need to create a Redis client that accepts all the commands used
-        -- in the code and that returns an error in some step
+        -- in the code and that returns an error when commiting the pipeline.
         redis_pool.acquire = function()
-          return { multi = function() return true end,
+          return { init_pipeline = function() return true end,
                    hincrby = function() return true end,
                    sadd = function() return true end,
-                   exec = function() return false end }, true
+                   commit_pipeline = function() return nil end }, true
         end
       end)
 
