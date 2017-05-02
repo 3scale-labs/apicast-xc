@@ -1,5 +1,5 @@
 package = "apicast_xc"
-version = "1.1.0-0"
+version = "1.2.0-0"
 source = {
   url = "https://github.com/3scale/apicast-xc.git",
   dir = "xc",
