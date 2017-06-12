@@ -10,6 +10,10 @@ RUN yum install -y epel-release \
  && yum install -y lua-devel make gcc wget unzip epel-release luarocks \
  && yum clean all -y
 
+# Looks like this is necessary in some Apicast versions.
+# Remove this line when Apicast images are fixed.
+RUN rm -rf /opt/app-root/src/logs
+
 USER default
 
 # Copy XC source code to the appropriate directory
