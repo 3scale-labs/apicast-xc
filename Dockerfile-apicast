@@ -1,6 +1,6 @@
 # In the future, when APIcast provide a standard way to install modules this
 # Dockerfile might not be needed.
-FROM quay.io/3scale/apicast:v3.0.0-rc1
+FROM quay.io/3scale/apicast:v3.0.0
 
 USER root
 
