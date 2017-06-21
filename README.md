@@ -88,6 +88,12 @@ APICAST_MODULE=apicast_xc
 XC_REDIS_HOST=your_redis_host.com:6379
 ```
 
+Optionally, you can also configure other options of the redis pool with these
+environment variables:
+- `REDIS_TIMEOUT` (in milliseconds)
+- `REDIS_KEEPALIVE` (in milliseconds)
+- `REDIS_CONN_POOL`(number of connections in the pool)
+
 ### Docker
 
 Build the image:
