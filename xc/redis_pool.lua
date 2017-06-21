@@ -21,8 +21,8 @@ local host, port = unpack(get_host_and_port(os.getenv("XC_REDIS_HOST")))
 local _M = {
   host      = host or 'localhost',
   port      = tonumber(port) or 6379,
-  timeout   = 3000,  -- 3 seconds
-  keepalive = 10000, -- milliseconds
+  timeout   = tonumber(os.getenv("REDIS_TIMEOUT")) or 3000,  -- 3 seconds
+  keepalive = tonumber(os.getenv("REDIS_KEEPALIVE")) or 10000, -- milliseconds
   poolsize  = tonumber(os.getenv("REDIS_CONN_POOL")) or 10000 -- # connections
 }
 
